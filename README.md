@@ -26,7 +26,7 @@ Vite, vanilla JavaScript, [three.js](https://threejs.org) and [GSAP](https://gsa
 
 - **Netlify:** drag `dist/` onto the Netlify dashboard, or set the build command to `npm run build` and the publish directory to `dist`.
 - **Vercel:** import the repo; it detects Vite. The output directory is `dist`.
-- **GitHub Pages:** push the contents of `dist/` to a `gh-pages` branch, or use a Pages workflow that runs `npm ci && npm run build` and uploads `dist/`.
+- **GitHub Pages:** already set up in `.github/workflows/deploy-pages.yml`. Turn it on once under Settings → Pages → Source: **GitHub Actions**. After that, every push to the working branch (or `main`) builds and publishes to `https://johnbora.github.io/TimerTownNotion/`. Re-run the last deploy from the Actions tab with "Run workflow".
 
 In Notion, type `/embed` and paste the deployed URL. Drag the embed's corner to make it tall enough (about 700 px is comfortable). Below 760 px wide the panel becomes a bottom sheet you can drag between peek, half and full.
 
