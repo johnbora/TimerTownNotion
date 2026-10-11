@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Watch Town</title>
+    <meta name="description" content="Watch Town — a night-time street whose lamps light up as you work through your videos. A 3D watch-time ledger." />
+    <meta name="theme-color" content="#10150f" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2310150f'/%3E%3Cpath d='M16 29V12M12 12h8l-1.5-5h-5zM14 7l2-3 2 3M11 29h10' fill='none' stroke='%23efe7d4' stroke-width='1.6' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='9.5' r='2' fill='%23ffd9a0'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..600;1,400..600&family=Pinyon+Script&display=swap"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <main id="stage" aria-label="Watch Town street scene">
+        <div id="scene"></div>
+        <div id="bubble" class="bubble" aria-hidden="true"><span class="bubble-inner"></span></div>
+        <div id="fallback" class="fallback" hidden>
+          <div class="fallback-card">
+            <p class="fallback-script">Watch Town</p>
+            <p class="fallback-lede">The street needs WebGL, which this browser or embed isn’t offering right now.</p>
+            <p class="fallback-status" id="fallback-status"></p>
+            <p class="fallback-note">Your ledger still works — use the panel to log what you watch.</p>
+          </div>
+        </div>
+        <div id="shot" class="shot" hidden></div>
+      </main>
+      <aside id="panel" class="panel" aria-label="Watch Town ledger and environment"></aside>
+      <button id="panel-reopen" class="panel-reopen" type="button" hidden aria-controls="panel">
+        <span aria-hidden="true">‹</span> Ledger
+      </button>
+      <div id="live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    </div>
+    <noscript><p class="noscript">Watch Town needs JavaScript to run.</p></noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
