@@ -10,21 +10,37 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { PALETTE, setLinePixelRatio } from './lineStyle.js';
 
+const CONTEXT_ATTRS = { alpha: false, antialias: false, depth: true, stencil: false, premultipliedAlpha: true, preserveDrawingBuffer: false };
+
+/**
+ * Ask for the one WebGL 2 context the street will use (three.js r163+ cannot
+ * draw with WebGL 1). Returns { ok, canvas, context } or { ok: false, why, detail }
+ * with a reason a person can act on.
+ */
 export function webglSupport() {
+  let detail = '';
   try {
-    const c = document.createElement('canvas');
-    const gl = c.getContext('webgl2') || c.getContext('webgl');
-    if (!gl) return { ok: false, why: 'WebGL is turned off or unsupported' };
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-    return { ok: true };
+    const canvas = document.createElement('canvas');
+    canvas.addEventListener('webglcontextcreationerror', (e) => (detail = e.statusMessage || detail), { once: true });
+    const context =
+      canvas.getContext('webgl2', { ...CONTEXT_ATTRS, powerPreference: 'high-performance' }) ||
+      canvas.getContext('webgl2', CONTEXT_ATTRS);
+    if (context && !context.isContextLost()) return { ok: true, canvas, context };
+    const probe = document.createElement('canvas');
+    const gl1 = probe.getContext('webgl') || probe.getContext('experimental-webgl');
+    if (gl1) {
+      return { ok: false, why: 'this browser only offers WebGL 1, and the street needs WebGL 2', detail };
+    }
+    return { ok: false, why: 'the browser refused to start WebGL (it may be blocked or switched off)', detail };
   } catch (e) {
-    return { ok: false, why: e?.message || 'WebGL failed to start' };
+    return { ok: false, why: 'WebGL failed to start', detail: e?.message || String(e) };
   }
 }
 
-export function createRenderer(container, { lowPower = false } = {}) {
-  const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', stencil: false });
-  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+export function createRenderer(container, { lowPower = false, canvas, context } = {}) {
+  const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, powerPreference: 'high-performance' });
+  // Phones get a lighter frame (1.5×) so the GPU isn't pushed into dropping the context.
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, lowPower ? 1.5 : 2);
   renderer.setPixelRatio(pixelRatio);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -99,11 +115,16 @@ export function createRenderer(container, { lowPower = false } = {}) {
   }
   document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
 
+  const lossFns = new Set();
   renderer.domElement.addEventListener('webglcontextlost', (e) => {
-    e.preventDefault();
+    e.preventDefault(); // lets the browser try to restore it
     stop();
+    lossFns.forEach((fn) => fn(true));
   });
-  renderer.domElement.addEventListener('webglcontextrestored', () => start());
+  renderer.domElement.addEventListener('webglcontextrestored', () => {
+    lossFns.forEach((fn) => fn(false));
+    start();
+  });
 
   return {
     renderer,
@@ -132,6 +153,10 @@ export function createRenderer(container, { lowPower = false } = {}) {
     onResize(fn) {
       resizeFns.add(fn);
       fn(w, h);
+    },
+    /** fn(true) when the GPU drops the context, fn(false) when it comes back. */
+    onContextLoss(fn) {
+      lossFns.add(fn);
     },
     start,
     stop,

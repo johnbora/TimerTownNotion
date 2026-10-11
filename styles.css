@@ -115,6 +115,10 @@ button { cursor: pointer; }
 .fallback-lede { margin: 0 0 14px; color: var(--muted); }
 .fallback-status { margin: 0 0 14px; font-style: italic; font-size: 22px; }
 .fallback-note { margin: 0; font-variant-caps: all-small-caps; letter-spacing: 0.06em; color: var(--muted); }
+.fallback-why { margin: 0 0 14px; font-size: 15px; color: var(--muted); overflow-wrap: anywhere; }
+.fallback-why:empty { display: none; }
+.fallback-why code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--rose); }
+.fallback-actions { margin: 0 0 14px; }
 
 .shot {
   position: absolute;

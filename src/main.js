@@ -29,10 +29,20 @@ let scene = null;
 
 // ---- no WebGL: a styled message, the ledger keeps working ----------------------------
 
-function showFallback(why) {
+const escapeHtml = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let fallbackWired = false;
+
+/** No street: say exactly why, offer a retry, keep the ledger working. */
+function showFallback(why, detail = '', { lede } = {}) {
   const fb = document.getElementById('fallback');
   fb.hidden = false;
   panel.setSceneAvailable(false, why);
+  if (lede) document.getElementById('fallback-lede').textContent = lede;
+  document.getElementById('fallback-why').innerHTML =
+    `Reason: ${escapeHtml(why)}.` + (detail ? `<br><code>${escapeHtml(detail).slice(0, 240)}</code>` : '');
+  if (fallbackWired) return;
+  fallbackWired = true;
+  document.getElementById('fallback-retry').addEventListener('click', () => window.location.reload());
   const update = (state) => {
     const sel = selected(state);
     document.getElementById('fallback-status').textContent = sel
@@ -45,8 +55,8 @@ function showFallback(why) {
 
 // ---- the street ------------------------------------------------------------------------
 
-function buildScene() {
-  const r = createRenderer(sceneEl, { lowPower: isLowPower() });
+function buildScene(gl) {
+  const r = createRenderer(sceneEl, { lowPower: isLowPower(), canvas: gl.canvas, context: gl.context });
   const town = createTown(r.scene);
   const lamps = createLamps(r.scene);
   const weather = createWeather({ scene: r.scene, camera: r.camera, pixelRatio: r.pixelRatio });
@@ -123,6 +133,17 @@ function buildScene() {
     screenshot: () => saveScreenshot(r),
   });
   rig.onMode((m) => panel.setCameraMode(m));
+  // If the phone's GPU drops the context, say so; three.js rebuilds it if the browser restores it.
+  r.onContextLoss((lost) => {
+    if (lost) {
+      showFallback('the graphics processor stopped the street (WebGL context lost)', '', {
+        lede: 'The street paused because this device’s graphics stopped responding.',
+      });
+    } else {
+      document.getElementById('fallback').hidden = true;
+      panel.setSceneAvailable(true);
+    }
+  });
   onMotionChange(() => {
     rig.setAutoOrbit(settings.get('autoOrbit'));
     marquee.setSpeed(settings.get('bulbSpeed'));
@@ -227,15 +248,15 @@ function onChange(state, action) {
 const support = webglSupport();
 if (support.ok) {
   try {
-    scene = buildScene();
+    scene = buildScene(support);
   } catch (err) {
     console.error(err);
     scene = null;
     sceneEl.replaceChildren();
-    showFallback('it could not start');
+    showFallback('the 3D street failed while starting', err?.message || String(err));
   }
 } else {
-  showFallback(support.why);
+  showFallback(support.why, support.detail);
 }
 
 store.on('change', onChange);
