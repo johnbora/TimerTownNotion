@@ -283,7 +283,7 @@ export function createTown(scene) {
     block(cx - 0.8, cx + 0.8, 5.88, 6.0, -0.02, 0.16, flat(FILL.trim), { parent: theater, opacity: 0.6 });
   }
 
-  // Marquee box (the lettered face, bulbs and clock hand belong to marquee.js).
+  // Marquee box (the lettered face, bulbs and the clock's hands belong to marquee.js).
   const MQ = { x0: -4.25, x1: 4.25, y0: 3.45, y1: 5.0, z: 2.1 };
   T(MQ.x0, MQ.x1, MQ.y0, MQ.y1, 0, MQ.z, flat(FILL.mid));
   T(MQ.x0 - 0.06, MQ.x1 + 0.06, MQ.y1, MQ.y1 + 0.1, -0.02, MQ.z + 0.06, flat(FILL.trim), { opacity: 0.6 });

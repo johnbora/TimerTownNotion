@@ -84,6 +84,7 @@ function buildScene(gl) {
     rig.update(dt);
     weather.setViewDistance(rig.viewDistance());
     characters.frame();
+    marquee.tick();
   });
 
   settings.on((key, value, opts) => {

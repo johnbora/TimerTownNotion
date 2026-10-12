@@ -1,4 +1,5 @@
-// The marquee face (canvas texture), its chasing bulbs, and the parapet clock hand.
+// The marquee face (canvas texture), its chasing bulbs, and the parapet clock
+// (real local time with AM/PM, plus a gold arc for the selected video's progress).
 
 import * as THREE from 'three';
 import { gsap } from 'gsap';
@@ -209,22 +210,74 @@ export function createMarquee(scene, town) {
       .to(chase, { boost: 1, glow: 1, duration: 1.4, ease: 'power2.inOut', onUpdate: applySpeed }, `+=${seconds}`);
   }
 
-  // ---- clock hand ----------------------------------------------------------------------
+  // ---- parapet clock: real local time, AM/PM, and a progress arc on the rim ----------
   const C = town.anchors.clockCenter;
-  const handGeo = new THREE.BoxGeometry(0.045, 0.5, 0.02);
-  handGeo.translate(0, 0.2, 0);
   const handMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(PALETTE.cream).multiplyScalar(0.95) });
-  const hand = new THREE.Mesh(handGeo, handMat);
-  hand.position.set(C.x, C.y, C.z + 0.03);
-  group.add(hand);
-  const tail = new THREE.Mesh(new THREE.CircleGeometry(0.05, 16), handMat);
-  tail.position.set(C.x, C.y, C.z + 0.045);
-  group.add(tail);
+  const makeHand = (width, length, z) => {
+    const geo = new THREE.BoxGeometry(width, length, 0.02);
+    geo.translate(0, length / 2 - 0.06, 0); // a short tail past the pivot
+    const m = new THREE.Mesh(geo, handMat);
+    m.position.set(C.x, C.y, C.z + z);
+    group.add(m);
+    return m;
+  };
+  const hourHand = makeHand(0.06, 0.36, 0.03);
+  const minuteHand = makeHand(0.035, 0.54, 0.04);
+  const cap = new THREE.Mesh(new THREE.CircleGeometry(0.05, 16), handMat);
+  cap.position.set(C.x, C.y, C.z + 0.055);
+  group.add(cap);
 
-  function setHand(p, { animate = true } = {}) {
-    const z = -Math.max(0, Math.min(1, p)) * Math.PI * 2;
-    gsap.to(hand.rotation, { z, duration: animate && !reducedMotion() ? 1.3 : 0, ease: 'power2.inOut', overwrite: true });
+  // AM / PM, small caps in the lower half of the dial.
+  let meridiem = '';
+  const ampmTex = canvasTexture(128, 64, (g, w, h) => {
+    if (!meridiem) return;
+    g.fillStyle = '#efe7d4';
+    g.font = `500 40px ${SERIF}`;
+    g.textBaseline = 'middle';
+    spaced(g, meridiem, w / 2, h / 2 + 2, 6);
+  });
+  const ampm = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.3, 0.15),
+    new THREE.MeshBasicMaterial({ map: ampmTex, transparent: true, color: new THREE.Color(0.9, 0.88, 0.82) }),
+  );
+  ampm.position.set(C.x, C.y - 0.24, C.z + 0.015);
+  group.add(ampm);
+
+  let fontsOk = false;
+  let lastMinute = -1;
+  /** Called every frame: hands follow the device's local time. */
+  function tick() {
+    const now = new Date();
+    const m = now.getMinutes() + now.getSeconds() / 60;
+    const h = (now.getHours() % 12) + m / 60;
+    minuteHand.rotation.z = -(m / 60) * Math.PI * 2;
+    hourHand.rotation.z = -(h / 12) * Math.PI * 2;
+    if (now.getMinutes() === lastMinute) return;
+    lastMinute = now.getMinutes();
+    const mer = now.getHours() < 12 ? 'AM' : 'PM';
+    if (mer !== meridiem && fontsOk) {
+      meridiem = mer;
+      ampmTex.userData.redraw();
+    }
   }
+
+  // The selected video's progress, as a gold arc filling clockwise from 12.
+  const arcMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(PALETTE.gold).multiplyScalar(1.05), side: THREE.DoubleSide });
+  const arc = new THREE.Mesh(new THREE.BufferGeometry(), arcMat);
+  arc.position.set(C.x, C.y, C.z + 0.01);
+  group.add(arc);
+  const arcState = { p: 0 };
+  function drawArc() {
+    const len = Math.max(0, Math.min(1, arcState.p)) * Math.PI * 2;
+    arc.visible = len > 0.002;
+    if (!arc.visible) return;
+    arc.geometry.dispose();
+    arc.geometry = new THREE.RingGeometry(0.575, 0.632, Math.max(2, Math.round(64 * arcState.p)), 1, Math.PI / 2 - len, len);
+  }
+  function setProgressArc(p, { animate = true } = {}) {
+    gsap.to(arcState, { p, duration: animate && !reducedMotion() ? 1.3 : 0, ease: 'power2.inOut', overwrite: true, onUpdate: drawArc });
+  }
+  tick();
 
   // ---- data ---------------------------------------------------------------------------
   let ready = false;
@@ -238,15 +291,18 @@ export function createMarquee(scene, town) {
       tex.userData.redraw();
     }
     lastKey = ready ? key : '';
-    setHand(sel ? sel.progress : 0, { animate });
+    setProgressArc(sel ? sel.progress : 0, { animate });
   }
   // Never draw lettering before EB Garamond is ready.
   fontsReady().then(() => {
+    fontsOk = true;
+    lastMinute = -1;
+    tick();
     ready = true;
     content = pending;
     lastKey = JSON.stringify(pending);
     tex.userData.redraw();
   });
 
-  return { group, update, setSpeed, boost, setHand, hand, face };
+  return { group, update, tick, setSpeed, boost, face };
 }

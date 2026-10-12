@@ -3,7 +3,7 @@
 A 3D watch-time ledger. Log the long videos you're working through (lectures, courses), deduct sections as you watch, and a small night-time street shows how far you've come:
 
 - **Street lamps light up one by one** as you near the end of a video (or the whole day, in Day mode).
-- The **theater marquee** shows the time left, and the **parapet clock** turns to your progress.
+- The **theater marquee** shows the time left. The **parapet clock** keeps real local time (with AM/PM), and a gold arc around its rim fills with your progress.
 - **Bartholomew**, a monocled gentleman, walks down the sidewalk to your place in the video.
 - Finishing a video opens the doors and brings out his friends; finishing the day adds fireworks and lights every window.
 
@@ -70,7 +70,7 @@ src/scene/renderer.js    renderer, bloom composer, resize, loop (pauses when hid
 src/scene/town.js        ground, sidewalk, buildings, the picture house, windows
 src/scene/lineStyle.js   cream outlines (hairline or LineMaterial), flat fills, merging
 src/scene/lamps.js       ten street lamps and the progress → light logic
-src/scene/marquee.js     marquee face texture, chasing bulbs, clock hand
+src/scene/marquee.js     marquee face texture, chasing bulbs, parapet clock
 src/scene/characters.js  Bartholomew and friends as billboard sprites
 src/scene/weather.js     sky, moon, stars, fog, rain / snow / leaves
 src/scene/celebrate.js   video + day sequences, confetti, fireworks
