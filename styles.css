@@ -56,7 +56,8 @@ button { cursor: pointer; }
 /* ---- stage --------------------------------------------------------------- */
 
 #app { position: fixed; inset: 0; }
-#stage { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+/* Desktop: the street gets its own area left of the panel (no overlap). */
+#stage { position: absolute; top: 0; left: 0; bottom: 0; right: var(--stage-right, var(--panel-w)); overflow: hidden; background: var(--bg); }
 #scene { position: absolute; inset: 0; }
 #scene canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
@@ -98,7 +99,6 @@ button { cursor: pointer; }
   display: grid;
   place-items: center;
   padding: 24px;
-  padding-right: calc(var(--panel-w) + 24px);
   background:
     radial-gradient(ellipse at 50% 85%, rgb(255 217 160 / 0.07), transparent 60%),
     var(--bg);
@@ -127,7 +127,6 @@ button { cursor: pointer; }
   place-items: center;
   background: rgb(16 21 15 / 0.82);
   padding: 24px;
-  padding-right: calc(var(--panel-w) + 24px);
   z-index: 5;
 }
 .shot figure { margin: 0; max-width: 100%; text-align: center; }
@@ -625,6 +624,7 @@ input[type='range']:disabled { opacity: 0.4; }
 
 @media (max-width: 759px) {
   :root { --panel-w: 0px; }
+  #stage { right: 0; }
   html, body { font-size: 16px; }
 
   .panel {

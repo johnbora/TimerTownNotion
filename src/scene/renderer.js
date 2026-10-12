@@ -39,8 +39,13 @@ export function webglSupport() {
 
 export function createRenderer(container, { lowPower = false, canvas, context } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, powerPreference: 'high-performance' });
-  // Phones get a lighter frame (1.5×) so the GPU isn't pushed into dropping the context.
-  const pixelRatio = Math.min(window.devicePixelRatio || 1, lowPower ? 1.5 : 2);
+  // Resolution: the device's pixel ratio, capped (1.5× on phones, 2× elsewhere) and
+  // kept within a pixel budget so very large or high-density screens don't ask the
+  // GPU for more than it can comfortably fill every frame.
+  const MAX_PIXELS = lowPower ? 2.2e6 : 4.2e6;
+  const ratioFor = (cw, ch) =>
+    Math.max(lowPower ? 1 : 0.75, Math.min(window.devicePixelRatio || 1, lowPower ? 1.5 : 2, Math.sqrt(MAX_PIXELS / Math.max(1, cw * ch))));
+  let pixelRatio = ratioFor(container.clientWidth || 1, container.clientHeight || 1);
   renderer.setPixelRatio(pixelRatio);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -86,12 +91,21 @@ export function createRenderer(container, { lowPower = false, canvas, context } 
   const resizeFns = new Set();
   function resize() {
     ({ w, h } = size());
+    // Window resized, browser zoom changed, or moved to a screen with another density.
+    const pr = ratioFor(w, h);
+    if (Math.abs(pr - pixelRatio) > 0.01) {
+      pixelRatio = pr;
+      renderer.setPixelRatio(pr);
+      composer.setPixelRatio(pr);
+      setLinePixelRatio(pr);
+    }
     renderer.setSize(w, h, false);
     composer.setSize(w, h);
     applyView();
     resizeFns.forEach((fn) => fn(w, h));
   }
   new ResizeObserver(resize).observe(container);
+  window.addEventListener('resize', resize);
   resize();
 
   const frameFns = new Set();
@@ -135,7 +149,9 @@ export function createRenderer(container, { lowPower = false, canvas, context } 
     camera,
     composer,
     bloom,
-    pixelRatio,
+    get pixelRatio() {
+      return pixelRatio;
+    },
     get size() {
       return { w, h };
     },

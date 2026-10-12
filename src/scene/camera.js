@@ -10,7 +10,7 @@ import { reducedMotion } from '../state/settings.js';
 // Each preset frames a target with a viewing direction and the half-extents
 // (world units) that must fit inside the visible part of the stage.
 const PRESETS = {
-  street: { target: [-5.0, 6.1, 0], dir: [0, -0.1, 1], halfW: 14.2, halfH: 8.8, maxDist: 60, narrowX: -6.6 },
+  street: { target: [-5.0, 6.1, 0], dir: [0, -0.1, 1], halfW: 15.2, halfH: 8.8, maxDist: 60, narrowX: -6.6 },
   marquee: { target: [0, 4.35, 1.4], dir: [0.07, -0.05, 1], halfW: 5.0, halfH: 3.0, maxDist: 22 },
   bird: { target: [-4.5, 2.2, -1.5], dir: [0, 1.25, 0.8], halfW: 15.5, halfH: 9, maxDist: 62, narrowX: -2 },
   follow: { target: [0, 1.15, 0], dir: [0.16, 0.1, 1], halfW: 2.5, halfH: 1.7, maxDist: 14 },

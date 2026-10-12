@@ -780,11 +780,18 @@ export function createPanel({ root, reopen, live, store, settings }) {
   const slide = { x: 0 }; // 0 docked, 1 tucked away
   const sheet = { y: 0, at: 'peek' };
 
+  // Desktop: the street's own area ends where the panel begins, so nothing is
+  // covered. Phones: the sheet overlays the street and reports how much it covers.
+  const docStyle = document.documentElement.style;
   function layout() {
     if (isMobile) return { right: 0, bottom: Math.max(0, root.offsetHeight - sheet.y) };
-    return { right: Math.max(0, root.offsetWidth * (1 - slide.x)), bottom: 0 };
+    return { right: 0, bottom: 0 };
+  }
+  function syncStage() {
+    docStyle.setProperty('--stage-right', isMobile ? '0px' : `${Math.round(root.offsetWidth * (1 - slide.x))}px`);
   }
   function emitLayout() {
+    syncStage();
     const l = layout();
     layoutListeners.forEach((fn) => fn(l));
   }
