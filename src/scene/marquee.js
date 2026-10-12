@@ -50,7 +50,7 @@ export function createMarquee(scene, town) {
   const faceH = MQ.y1 - MQ.y0 - 0.38;
   const faceMat = new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(1.12, 1.1, 1.04) });
   const face = new THREE.Mesh(new THREE.PlaneGeometry(faceW, faceH), faceMat);
-  face.position.set((MQ.x0 + MQ.x1) / 2, (MQ.y0 + MQ.y1) / 2, MQ.z + 0.006);
+  face.position.set((MQ.x0 + MQ.x1) / 2, (MQ.y0 + MQ.y1) / 2, MQ.z + 0.025);
   group.add(face);
 
   function drawFace(g, c) {

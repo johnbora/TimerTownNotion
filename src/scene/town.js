@@ -96,9 +96,9 @@ export function createTown(scene) {
   // ---- windows (instanced quads) -----------------------------------------------
 
   const windows = []; // { x0, y0, x1, y1, z, kind }
-  function windowAt(x0, y0, x1, y1, z = 0.012, { kind = 'upper', frame = 0.5, cross = true, sill = true } = {}) {
+  function windowAt(x0, y0, x1, y1, z = 0.025, { kind = 'upper', frame = 0.5, cross = true, sill = true } = {}) {
     windows.push({ x0, y0, x1, y1, z, kind });
-    addSegs(rectSegs(x0, y0, x1, y1, z + 0.004, { cross }), frame);
+    addSegs(rectSegs(x0, y0, x1, y1, z + 0.012, { cross }), frame);
     if (sill) block(x0 - 0.08, x1 + 0.08, y0 - 0.08, y0, z - 0.012, z + 0.12, flat(FILL.trim), { opacity: 0.55 });
   }
 
@@ -172,7 +172,7 @@ export function createTown(scene) {
   const D = -9; // building depth
   block(-20.5, -15.2, 0, 6.2, D, 0, flat(FILL.dark));
   block(-20.7, -15.0, 6.2, 6.55, -0.3, 0.25, flat(FILL.trim)); // cornice
-  windowAt(-19.9, 0.6, -17.3, 2.5, 0.012, { kind: 'ground', cross: false, sill: false });
+  windowAt(-19.9, 0.6, -17.3, 2.5, 0.025, { kind: 'ground', cross: false, sill: false });
   addSegs(rectSegs(-16.7, SIDEWALK_Y, -15.8, 2.35, 0.012, { hbars: 1 }), 0.55);
   [-19.35, -17.85, -16.35].forEach((cx) => windowAt(cx - 0.45, 3.4, cx + 0.45, 5.0));
   block(-19.6, -19.0, 6.55, 7.6, -6, -5.2, flat(FILL.mid), { opacity: 0.5 }); // chimney
@@ -190,7 +190,7 @@ export function createTown(scene) {
   block(-15.2, -9.8, 0, 8.6, D, 0, flat(FILL.mid));
   block(-15.4, -9.6, 8.6, 9.0, -0.3, 0.28, flat(FILL.trim));
   for (let y = 0.6; y < 8.5; y += 0.42) addSegs([-15.2, y, 0.006, -9.8, y, 0.006], 0.1);
-  windowAt(-14.7, 0.6, -11.7, 2.6, 0.012, { kind: 'ground', cross: false, sill: false });
+  windowAt(-14.7, 0.6, -11.7, 2.6, 0.025, { kind: 'ground', cross: false, sill: false });
   addSegs(rectSegs(-11.1, SIDEWALK_Y, -10.2, 2.4, 0.012, { hbars: 1 }), 0.55);
   for (const y of [3.4, 6.0]) [-14.1, -12.5, -10.9].forEach((cx) => windowAt(cx - 0.5, y, cx + 0.5, y + 1.6));
   block(-11.2, -10.4, 9.0, 10.2, -5, -4.2, flat(FILL.dark), { opacity: 0.5 });
@@ -256,7 +256,7 @@ export function createTown(scene) {
       new THREE.PlaneGeometry(5.6, 0.7),
       new THREE.MeshBasicMaterial({ map: signTex, transparent: true, color: new THREE.Color(0.78, 0.76, 0.7) }),
     );
-    sign.position.set(0, 5.42, 0.02);
+    sign.position.set(0, 5.42, 0.035);
     theater.add(sign);
     addSegs(rectSegs(-3.05, 5.07, 3.05, 5.77, 0.015), 0.5);
   }
@@ -276,10 +276,10 @@ export function createTown(scene) {
     const top = 1.8 + w / 2;
     for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) / w + 0.5, uv.getY(k) / top);
     const win = new THREE.Mesh(geo, archMats);
-    win.position.set(cx, 6.0, 0.012);
+    win.position.set(cx, 6.0, 0.025);
     theater.add(win);
     outlined(win, { opacity: 0.8 });
-    addSegs([cx, 6.0, 0.02, cx, 6.0 + 1.8 + w / 2, 0.02, cx - w / 2, 7.8, 0.02, cx + w / 2, 7.8, 0.02], 0.55);
+    addSegs([cx, 6.0, 0.04, cx, 6.0 + 1.8 + w / 2, 0.04, cx - w / 2, 7.8, 0.04, cx + w / 2, 7.8, 0.04], 0.55);
     block(cx - 0.8, cx + 0.8, 5.88, 6.0, -0.02, 0.16, flat(FILL.trim), { parent: theater, opacity: 0.6 });
   }
 
@@ -318,11 +318,11 @@ export function createTown(scene) {
   for (const cx of [-1.6, 0, 1.6]) {
     // Warm lobby light behind the doors; hidden until they swing open.
     const lobby = new THREE.Mesh(new THREE.PlaneGeometry(DOOR.w, DOOR.h), lobbyMat);
-    lobby.position.set(cx, DOOR.y0 + DOOR.h / 2, 0.006);
+    lobby.position.set(cx, DOOR.y0 + DOOR.h / 2, 0.014);
     theater.add(lobby);
     addSegs(rectSegs(cx - DOOR.w / 2 - 0.05, DOOR.y0, cx + DOOR.w / 2 + 0.05, DOOR.y0 + DOOR.h + 0.05, 0.01), 0.75);
     // Transom.
-    windowAt(cx - DOOR.w / 2, 2.95, cx + DOOR.w / 2, 3.32, 0.012, { kind: 'transom', cross: false, sill: false, frame: 0.6 });
+    windowAt(cx - DOOR.w / 2, 2.95, cx + DOOR.w / 2, 3.32, 0.025, { kind: 'transom', cross: false, sill: false, frame: 0.6 });
     addSegs([cx - 0.22, 2.95, 0.02, cx - 0.22, 3.32, 0.02, cx + 0.22, 2.95, 0.02, cx + 0.22, 3.32, 0.02], 0.5);
 
     for (const side of [-1, 1]) {
@@ -365,16 +365,16 @@ export function createTown(scene) {
       new THREE.PlaneGeometry(0.86, 1.92),
       new THREE.MeshBasicMaterial({ map: posterTex[i], color: new THREE.Color(0.85, 0.83, 0.78) }),
     );
-    poster.position.set(cx, 1.8, 0.084);
+    poster.position.set(cx, 1.8, 0.1);
     theater.add(poster);
-    addSegs(rectSegs(cx - 0.43, 0.84, cx + 0.43, 2.76, 0.086), 0.6);
+    addSegs(rectSegs(cx - 0.43, 0.84, cx + 0.43, 2.76, 0.115), 0.6);
   });
 
   // ---- right neighbor: tall, with a zig-zag fire escape ---------------------------
 
   block(4.6, 9.8, 0, 12.6, D, 0, flat(FILL.mid));
   block(4.5, 9.95, 12.6, 13.0, -0.3, 0.3, flat(FILL.trim));
-  windowAt(5.2, 0.6, 8.0, 2.75, 0.012, { kind: 'ground', cross: false, sill: false });
+  windowAt(5.2, 0.6, 8.0, 2.75, 0.025, { kind: 'ground', cross: false, sill: false });
   addSegs(rectSegs(8.4, SIDEWALK_Y, 9.3, 2.55, 0.012, { hbars: 1 }), 0.55);
   const floors = [3.6, 6.6, 9.6];
   for (const y of floors) [5.7, 7.2, 8.7].forEach((cx) => windowAt(cx - 0.42, y, cx + 0.42, y + 1.45));
@@ -436,7 +436,7 @@ export function createTown(scene) {
     ring.push(11.88, 8.05, 0.13, 12.72, 8.05, 0.13, 12.3, 7.63, 0.13, 12.3, 8.47, 0.13);
     addSegs(ring, 0.65);
   }
-  windowAt(10.4, 0.7, 12.6, 2.6, 0.012, { kind: 'ground', cross: false, sill: false });
+  windowAt(10.4, 0.7, 12.6, 2.6, 0.025, { kind: 'ground', cross: false, sill: false });
   addSegs(rectSegs(13.2, SIDEWALK_Y, 14.1, 2.4, 0.012, { hbars: 1 }), 0.55);
   [11.0, 13.6].forEach((cx) => windowAt(cx - 0.55, 3.8, cx + 0.55, 5.5));
 
@@ -444,7 +444,7 @@ export function createTown(scene) {
 
   block(14.8, 20.5, 0, 10.0, D, 0, flat(FILL.light));
   block(14.7, 20.6, 10.0, 10.35, -0.3, 0.25, flat(FILL.trim));
-  windowAt(15.4, 0.6, 18.6, 2.6, 0.012, { kind: 'ground', cross: false, sill: false });
+  windowAt(15.4, 0.6, 18.6, 2.6, 0.025, { kind: 'ground', cross: false, sill: false });
   addSegs(rectSegs(19.0, SIDEWALK_Y, 19.9, 2.4, 0.012, { hbars: 1 }), 0.55);
   for (const y of [3.4, 5.6, 7.8]) [15.9, 17.65, 19.4].forEach((cx) => windowAt(cx - 0.45, y, cx + 0.45, y + 1.4));
   {
@@ -469,7 +469,7 @@ export function createTown(scene) {
   far.forEach(([x0, x1, h]) => {
     block(x0, x1, 0, h, D, 0, flat(FILL.dark), { opacity: 0.38 });
     for (let x = x0 + 1; x < x1 - 0.8; x += 1.8) {
-      for (let y = 3.2; y < h - 1.2; y += 2.4) if (rand() > 0.3) windowAt(x, y, x + 0.8, y + 1.3, 0.012, { kind: 'far', frame: 0.25, sill: false });
+      for (let y = 3.2; y < h - 1.2; y += 2.4) if (rand() > 0.3) windowAt(x, y, x + 0.8, y + 1.3, 0.025, { kind: 'far', frame: 0.25, sill: false });
     }
   });
   // Skyline behind the block.
@@ -482,7 +482,7 @@ export function createTown(scene) {
     for (let k = 0; k < 4; k++) {
       const wx = x0 + 0.6 + rand() * (w - 1.6);
       const wy = 4 + rand() * (h - 6);
-      windowAt(wx, wy, wx + 0.7, wy + 1.0, z1 + 0.012, { kind: 'far', frame: 0.12, sill: false, cross: false });
+      windowAt(wx, wy, wx + 0.7, wy + 1.0, z1 + 0.025, { kind: 'far', frame: 0.12, sill: false, cross: false });
     }
   }
 

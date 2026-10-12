@@ -15,6 +15,14 @@ const PRESETS = {
   bird: { target: [-4.5, 2.2, -1.5], dir: [0, 1.25, 0.8], halfW: 15.5, halfH: 9, maxDist: 62, narrowX: -2 },
   follow: { target: [0, 1.15, 0], dir: [0.16, 0.1, 1], halfW: 2.5, halfH: 1.7, maxDist: 14 },
 };
+// Tall, narrow screens (phones): a three-quarter view down the street, so the
+// picture house is close and large and the lamps recede into the distance.
+const PORTRAIT = {
+  street: { target: [-4.9, 4.2, 1.0], dir: [0.8, 0.04, 1], halfW: 6.2, halfH: 9, maxDist: 42 },
+  marquee: { target: [0, 4.35, 1.4], dir: [0.18, -0.05, 1], halfW: 4.4, halfH: 3.0, maxDist: 24 },
+  bird: { target: [-4.5, 1.6, 0], dir: [0.55, 1.25, 0.85], halfW: 7.5, halfH: 10, maxDist: 44 },
+  follow: { target: [0, 1.15, 0], dir: [0.3, 0.1, 1], halfW: 2.2, halfH: 1.9, maxDist: 12 },
+};
 const BOUNDS = { x: [-22, 22], y: [0.4, 14], z: [-4, 16] };
 const AZIMUTH = 1.25;
 
@@ -63,10 +71,10 @@ export function createCameraRig({ camera, dom, getStage, getFollowTarget }) {
 
   /** Distance at which the preset's extents fit the visible part of the stage. */
   function presetPose(name) {
-    const p = PRESETS[name];
     const { w, h, right, bottom } = getStage();
     const vw = Math.max(1, w - right);
     const vh = Math.max(1, h - bottom);
+    const p = (vw / vh < 0.9 && PORTRAIT[name]) || PRESETS[name];
     const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     // With a view offset the projection keeps the full-stage FOV; only vw × vh shows.
     const dW = p.halfW / (tanV * (vw / h));
@@ -179,5 +187,7 @@ export function createCameraRig({ camera, dom, getStage, getFollowTarget }) {
     get mode() {
       return mode;
     },
+    /** How far the camera sits from what it looks at (drives fog thinning). */
+    viewDistance: () => camera.position.distanceTo(controls.target),
   };
 }

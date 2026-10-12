@@ -82,6 +82,7 @@ function buildScene(gl) {
   r.onFrame((dt, t) => {
     weather.update(dt, t);
     rig.update(dt);
+    weather.setViewDistance(rig.viewDistance());
     characters.frame();
   });
 

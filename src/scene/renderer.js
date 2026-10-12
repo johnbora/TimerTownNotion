@@ -56,12 +56,15 @@ export function createRenderer(container, { lowPower = false, canvas, context } 
   const size = () => ({ w: Math.max(1, container.clientWidth), h: Math.max(1, container.clientHeight) });
   let { w, h } = size();
 
-  const camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 900);
+  // Near plane at 0.6 (nothing gets closer) keeps depth precision high enough that
+  // decals a centimetre off a wall don't flicker on phone GPUs at long distances.
+  const camera = new THREE.PerspectiveCamera(38, w / h, 0.6, 1000);
 
   // Multisampled HDR target: crisp hairlines and room for bloom above 1.0.
   const target = new THREE.WebGLRenderTarget(w * pixelRatio, h * pixelRatio, {
     type: THREE.HalfFloatType,
-    samples: lowPower ? 2 : 4,
+    // Multisampled half-float targets glitch on some phone GPUs; phones skip MSAA.
+    samples: lowPower ? 0 : 4,
   });
   const composer = new EffectComposer(renderer, target);
   composer.setPixelRatio(pixelRatio);

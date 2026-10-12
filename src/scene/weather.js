@@ -41,8 +41,7 @@ const skyVertex = /* glsl */ `
   varying vec3 vDir;
   void main() {
     vDir = normalize(position);
-    vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_Position = p.xyww;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }`;
 const skyFragment = /* glsl */ `
   uniform vec3 uTop;
@@ -74,8 +73,7 @@ const starVertex = /* glsl */ `
     vTwinkle = 0.65 + 0.35 * sin(uTime * (0.6 + aPhase * 1.7) + aPhase * 40.0);
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     gl_PointSize = aSize * uPixelRatio;
-    vec4 p = projectionMatrix * mv;
-    gl_Position = p.xyww;
+    gl_Position = projectionMatrix * mv;
   }`;
 const starFragment = /* glsl */ `
   uniform float uOpacity;
@@ -306,7 +304,7 @@ export function createWeather({ scene, camera, pixelRatio = 1 }) {
   const halo = new THREE.Sprite(
     new THREE.SpriteMaterial({ map: glowTexture(), color: 0xd8d6c4, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   );
-  halo.scale.setScalar(58);
+  halo.scale.setScalar(40);
   moon.add(halo, moonDisc);
   moon.renderOrder = -8;
   moonDisc.renderOrder = -7;
@@ -469,14 +467,27 @@ export function createWeather({ scene, camera, pixelRatio = 1 }) {
 
   function applyFog() {
     const f = fogState.amount;
-    scene.fog.density = 0.002 + Math.pow(f, 1.4) * 0.055;
+    baseDensity = 0.002 + Math.pow(f, 1.4) * 0.055;
+    scene.fog.density = baseDensity * fogScale;
     scene.fog.color.copy(nightLook.fog);
     skyUniforms.uMoonHaze.value = 1 + f * 2;
-    halo.material.opacity = 0.2 + f * 0.22;
+    halo.material.opacity = 0.15 + f * 0.17;
     // Fog dims the sky toward the fog color.
     skyUniforms.uTop.value.lerp(nightLook.fog, f * 0.6);
     skyUniforms.uHorizon.value.lerp(nightLook.fog, f * 0.35);
     starMat.uniforms.uOpacity.value = nightLook.stars * (1 - f * 0.85);
+  }
+
+  // Fog is tuned for the desktop street view (~26 units back). When the camera
+  // sits farther away (narrow phone screens, zoomed out) thin it out so the
+  // town isn't washed over.
+  let baseDensity = 0.012;
+  let fogScale = 1;
+  function setViewDistance(d) {
+    const s = Math.min(1, Math.max(0.3, 26 / Math.max(1, d)));
+    if (Math.abs(s - fogScale) < 0.01) return;
+    fogScale = s;
+    scene.fog.density = baseDensity * fogScale;
   }
 
   function setTimeOfNight(t, { animate = true } = {}) {
@@ -500,6 +511,7 @@ export function createWeather({ scene, camera, pixelRatio = 1 }) {
     update,
     setTimeOfNight,
     setFog,
+    setViewDistance,
     setWeather,
     setIntensity,
     onWeather: (fn) => listeners.push(fn),
