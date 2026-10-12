@@ -40,7 +40,9 @@ const coneFragment = /* glsl */ `
   varying float vH;
   varying float vFacing;
   void main() {
-    float a = uOpacity * pow(vH, 1.7) * pow(vFacing, 1.4);
+    // Clamp before pow(): with MSAA, varyings at a triangle's edge can land a hair
+    // outside 0..1, and pow() of a negative number is NaN on real GPUs.
+    float a = uOpacity * pow(clamp(vH, 0.0, 1.0), 1.7) * pow(clamp(vFacing, 0.0, 1.0), 1.4);
     gl_FragColor = vec4(uColor, a);
   }`;
 

@@ -124,7 +124,7 @@ const fwVertex = /* glsl */ `
       float e = (1.0 - exp(-K * t)) / K;
       p = aOrigin + aVel * e + vec3(0.0, -1.4 * t * t, 0.0);
       float k = t / aLife;
-      vAlpha = pow(1.0 - k, 1.6) * (0.75 + 0.25 * sin(t * 40.0 + aOrigin.x * 13.0));
+      vAlpha = pow(clamp(1.0 - k, 0.0, 1.0), 1.6) * (0.75 + 0.25 * sin(t * 40.0 + aOrigin.x * 13.0));
       size = mix(9.0, 3.5, k);
     }
     vec4 mv = modelViewMatrix * vec4(p, 1.0);

@@ -8,6 +8,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { PALETTE, setLinePixelRatio } from './lineStyle.js';
 
 const CONTEXT_ATTRS = { alpha: false, antialias: false, depth: true, stencil: false, premultipliedAlpha: true, preserveDrawingBuffer: false };
@@ -17,6 +18,33 @@ const CONTEXT_ATTRS = { alpha: false, antialias: false, depth: true, stencil: fa
  * draw with WebGL 1). Returns { ok, canvas, context } or { ok: false, why, detail }
  * with a reason a person can act on.
  */
+/**
+ * Replaces NaN / infinite pixels before bloom. UnrealBloomPass blurs at down to
+ * 1/64 resolution, so one bad pixel (a GPU quirk in any shader) would otherwise
+ * spread into a black block covering much of the screen.
+ */
+const SanitizeShader = {
+  name: 'SanitizeShader',
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    varying vec2 vUv;
+    bool badValue(float x) {
+      return isnan(x) || isinf(x) || !(x <= 65000.0) || !(x >= -65000.0);
+    }
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      if (badValue(c.r) || badValue(c.g) || badValue(c.b)) c = vec4(0.0, 0.0, 0.0, 1.0);
+      gl_FragColor = vec4(clamp(c.rgb, 0.0, 64.0), 1.0);
+    }`,
+};
+
 export function webglSupport() {
   let detail = '';
   try {
@@ -74,6 +102,9 @@ export function createRenderer(container, { lowPower = false, canvas, context } 
   const composer = new EffectComposer(renderer, target);
   composer.setPixelRatio(pixelRatio);
   composer.addPass(new RenderPass(scene, camera));
+  // Only the scene pass needs multisampling; the ping-pong target doesn't.
+  composer.renderTarget2.samples = 0;
+  composer.addPass(new ShaderPass(SanitizeShader));
   const bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.9, 0.55, 0.8);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
